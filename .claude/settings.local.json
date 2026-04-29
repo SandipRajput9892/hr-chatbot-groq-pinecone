@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill -f \"uvicorn app.main\")",
+      "Bash(python -c \"from sentence_transformers import SentenceTransformer; print\\('sentence-transformers OK'\\)\")"
+    ]
+  }
+}

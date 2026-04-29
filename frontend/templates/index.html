@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HR Assistant</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════ LOGIN PAGE ═══════════════════════════════ -->
+  <div id="login-page" class="page">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">🤖</div>
+        <h1>HR Assistant</h1>
+        <p>Powered by Groq · Pinecone · PostgreSQL</p>
+      </div>
+      <form id="login-form" autocomplete="off" novalidate>
+        <div class="field-group">
+          <label for="login-email">Work Email</label>
+          <input id="login-email" type="email" placeholder="you@company.com" required />
+        </div>
+        <div class="field-group">
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" placeholder="••••••••" required />
+        </div>
+        <div id="login-error" class="alert alert-error hidden"></div>
+        <button type="submit" id="login-btn" class="btn btn-primary btn-full">
+          <span id="login-btn-text">Sign In</span>
+          <span id="login-spinner" class="spinner hidden"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ CHAT PAGE ════════════════════════════════ -->
+  <div id="chat-page" class="page hidden">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <span class="brand-icon">🤖</span>
+        <span class="brand-name">HR Assistant</span>
+      </div>
+      <div class="header-user">
+        <div class="user-badge">
+          <span id="hdr-avatar" class="avatar-chip"></span>
+          <div class="user-meta">
+            <span id="hdr-name" class="user-name"></span>
+            <span id="hdr-role" class="user-role"></span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn btn-ghost" title="Logout">⎋ Logout</button>
+      </div>
+    </header>
+
+    <div class="app-layout">
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+
+        <div class="employee-card">
+          <div id="card-avatar" class="card-avatar"></div>
+          <div class="card-info">
+            <div id="card-name" class="card-name"></div>
+            <div id="card-position" class="card-position"></div>
+            <div id="card-dept" class="card-dept"></div>
+          </div>
+        </div>
+
+<div class="upload-box">
+          <div class="section-label">Upload HR Document</div>
+          <label for="pdf-upload" class="upload-label">
+            <span class="upload-icon">📄</span>
+            <span id="upload-label-text">Choose PDF to upload</span>
+            <input id="pdf-upload" type="file" accept=".pdf" hidden />
+          </label>
+          <div id="upload-progress" class="progress-wrap hidden">
+            <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+            <span id="upload-status-text" class="upload-status-text">Uploading…</span>
+          </div>
+        </div>
+
+        <div class="docs-panel">
+          <div class="section-label">HR Documents</div>
+          <div id="docs-list"></div>
+        </div>
+
+        <!-- Employee Management (admin only) -->
+        <div id="emp-panel">
+          <div class="section-label">Employees</div>
+          <button id="add-emp-btn" class="btn btn-emp-add">+ Add Employee</button>
+          <div id="emp-list" class="emp-list"></div>
+        </div>
+
+      </aside>
+
+      <!-- Chat Area -->
+      <main class="chat-main">
+        <div id="messages" class="messages-area">
+          <div class="message bot-message">
+            <div class="msg-avatar">🤖</div>
+            <div class="msg-bubble">
+              <p>Hello! I'm your HR Assistant. Ask me anything about company policies, leave entitlements, benefits, or workplace guidelines.</p>
+              <p id="upload-hint" class="msg-hint">You can also upload HR documents on the left so I can reference them.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-bar">
+          <div class="input-row">
+            <textarea
+              id="msg-input"
+              class="msg-textarea"
+              placeholder="Ask about HR policies, leave, benefits…"
+              rows="1"
+              maxlength="2000"
+            ></textarea>
+            <button id="send-btn" class="btn btn-send" title="Send (Enter)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <div class="input-meta">
+            <span id="context-badge" class="context-badge hidden"></span>
+            <span id="char-count" class="char-count">0 / 2000</span>
+            <span class="input-hint">Enter to send · Shift+Enter for new line</span>
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════ ADD EMPLOYEE MODAL ══════════════════════════════ -->
+  <div id="emp-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add Employee</h3>
+        <button id="modal-close" class="btn btn-ghost modal-close-btn">✕</button>
+      </div>
+      <form id="add-emp-form" autocomplete="off" novalidate>
+        <div class="field-group">
+          <label>Employee ID</label>
+          <input id="emp-field-id" type="text" placeholder="EMP002" required />
+          <span class="field-hint">Uppercase letters + digits, e.g. EMP002</span>
+        </div>
+        <div class="field-group">
+          <label>Full Name</label>
+          <input id="emp-field-name" type="text" placeholder="John Smith" required />
+        </div>
+        <div class="field-group">
+          <label>Work Email</label>
+          <input id="emp-field-email" type="email" placeholder="john@company.com" required />
+        </div>
+        <div class="field-group">
+          <label>Password</label>
+          <input id="emp-field-password" type="password" placeholder="Min 8 characters" required />
+        </div>
+        <div class="field-group">
+          <label>Department</label>
+          <input id="emp-field-dept" type="text" placeholder="Engineering" required />
+        </div>
+        <div class="field-group">
+          <label>Position</label>
+          <input id="emp-field-position" type="text" placeholder="Software Engineer" required />
+        </div>
+        <div class="field-group checkbox-group">
+          <label>
+            <input id="emp-field-is-admin" type="checkbox" />
+            Grant Admin Access
+          </label>
+        </div>
+        <div id="emp-form-error" class="alert alert-error hidden"></div>
+        <div class="modal-actions">
+          <button type="button" id="modal-cancel" class="btn btn-ghost">Cancel</button>
+          <button type="submit" id="emp-submit-btn" class="btn btn-primary">
+            <span id="emp-submit-text">Create Employee</span>
+            <span id="emp-submit-spinner" class="spinner hidden"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/chat.js"></script>
+</body>
+</html>
