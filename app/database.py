@@ -1,9 +1,14 @@
 from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from app.config import settings
 
+# make_url correctly handles percent-encoded characters in the password
+# (e.g. %40 for @) and is required for PgBouncer / Supabase pooler URLs.
+_db_url = make_url(settings.DATABASE_URL)
+
 engine = create_engine(
-    settings.DATABASE_URL,
+    _db_url,
     pool_pre_ping=True,
     pool_size=10,
     max_overflow=20,
