@@ -59,7 +59,11 @@ def _create_initial_admin() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting HR Chatbot API …")
-    create_tables()
+    try:
+        create_tables()
+    except Exception as exc:
+        logger.error(f"Database connection failed — check DATABASE_URL: {exc}")
+        raise
     _create_initial_admin()
     init_pinecone_index()
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
